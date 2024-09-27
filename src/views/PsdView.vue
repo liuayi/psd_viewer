@@ -1,7 +1,8 @@
 <script setup lang="ts">
 
 import { ref } from 'vue'
-let title = ref('PSD文件预览')
+let title = ref('PSD文件预览');
+
 </script>
 
 <template>
