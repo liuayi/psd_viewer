@@ -13,6 +13,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "ag-psd": "^21.0.1",
+    "ant-design-vue": "^4.2.5",
     "psd": "^3.4.0",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"
