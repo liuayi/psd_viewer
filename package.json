@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "deployPage": "git subtree add --prefix dist github_psd_viewer gh-pages",
     "dev": "vite  --host 0.0.0.0",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
