@@ -6,15 +6,15 @@ import { InboxOutlined } from '@ant-design/icons-vue';
 import type { UploadProps } from 'ant-design-vue';
 
 import { readPsd } from 'ag-psd';
-const fileList = ref<any[]>([]);
-const canvasList = ref<Array<{ uid: string, psd: ReturnType<typeof readPsd> }>>([]);
 
+const fileList = ref<any[]>([]);
+type imagesInfo = { uid: string, imgUrl: string, layerUrl: Array<string> }
+const imagesList = ref<Array<imagesInfo>>([]);
 const beforeUpload: UploadProps['beforeUpload'] = file => {
   if (fileList.value == undefined) {
     fileList.value = []
   }
   fileList.value.push(file);
-  console.log(fileList.value);
   // 读取文件内容为 ArrayBuffer
   const reader = new FileReader();
   // new Blob()
@@ -25,9 +25,11 @@ const beforeUpload: UploadProps['beforeUpload'] = file => {
     const arrayBuffer = reader.result;
     if (arrayBuffer) {
       const psd = readPsd(arrayBuffer as ArrayBuffer);
-      // document.body.appendChild(psd.children[0].canvas);
-      console.log('psd===', psd);
-      canvasList.value.push({ uid: file.uid, psd: psd });
+      imagesList.value.push({
+        uid: file.uid, imgUrl: psd.canvas?.toDataURL() || '', layerUrl: (psd.children?.map(item => {
+          return item.canvas?.toDataURL() || ''
+        }) || []).reverse()
+      });
     }
   };
   // 错误处理
@@ -40,10 +42,10 @@ const removeFile: UploadProps['onRemove'] = (file) => {
   console.log('remove', file);
   const uid = file.uid;
   // 找到要删除对象的索引
-  const index = canvasList.value.findIndex(obj => obj.uid === uid);
+  const index = imagesList.value.findIndex(obj => obj.uid === uid);
   if (index !== -1) {
     // 使用 splice 方法删除对象
-    canvasList.value.splice(index, 1);
+    imagesList.value.splice(index, 1);
   }
 }
 
@@ -51,6 +53,17 @@ function handleDrop(e: DragEvent) {
   console.log(e);
 }
 
+// 图片预览
+let visible = ref(false)
+let selectedItem = ref<imagesInfo>({
+  uid: '',
+  imgUrl: '',
+  layerUrl: []
+})
+const imagePreview = (item: imagesInfo) => {
+  selectedItem.value = item;
+  visible.value = true
+}
 </script>
 
 <template>
@@ -68,9 +81,14 @@ function handleDrop(e: DragEvent) {
         只支持xxx.psd文件
       </p>
     </a-upload-dragger>
-    <a-carousel effect="fade">
-
-    </a-carousel>
+    <a-image v-for="item in imagesList" :key="item.uid" :preview="{ visible: false }" :width="200" :src="item.imgUrl"
+      @click="imagePreview(item)" />
+    <div style="display: none">
+      <a-image-preview-group :preview="{ visible, onVisibleChange: (vis: boolean) => (visible = vis) }">
+        <a-image key="origin" :src="selectedItem.imgUrl"></a-image>
+        <a-image v-for="(layerUrl, index) in selectedItem.layerUrl" :key="index" :src="layerUrl" />
+      </a-image-preview-group>
+    </div>
   </div>
 </template>
 
